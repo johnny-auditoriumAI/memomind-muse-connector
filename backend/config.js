@@ -17,24 +17,14 @@ export const config = {
   whisperUrl: (env.WHISPER_URL || 'http://127.0.0.1:8178').replace(/\/+$/, ''),
   whisperTimeoutMs: Number(env.WHISPER_TIMEOUT_MS) || 15000,
 
-  llmProvider: env.LLM_PROVIDER || (env.ANTHROPIC_API_KEY ? 'claude' : 'mock'),
-  claudeModel: env.CLAUDE_MODEL || 'claude-haiku-5-5',
-  claudeTimeoutMs: Number(env.CLAUDE_TIMEOUT_MS) || 20000,
-
   maxUtteranceMs: 30000,
   replyThrottleMs: 150,
-  historyTurns: 6,
-  historyTtlMs: 10 * 60 * 1000,
 
   // The display name for the Muse-backed assistant persona, shown in the
   // HUD and spoken in replies (e.g. "ASSISTANT'S reply", "Hey <name>").
   assistantName: env.ASSISTANT_NAME || 'Muse',
 
-  // Routing. 'haiku' (default) never touches the bridge; 'muse' routes
-  // every turn through the Muse bridge; 'wake-phrase' routes only turns
-  // whose transcript starts with assistantWakePhrase, stripping it.
-  assistantRoute: env.ASSISTANT_ROUTE || 'haiku',
-  assistantWakePhrase: env.ASSISTANT_WAKE_PHRASE || `ask ${(env.ASSISTANT_NAME || 'Muse').toLowerCase()}`,
+  // Every turn is routed through the Muse bridge; see ../bridge/.
   // Reachable only over Tailscale; never a public address.
   bridgeUrl: (env.BRIDGE_URL || '').replace(/\/+$/, ''),
   // Sent BY this backend TO the bridge's /v1/assist.

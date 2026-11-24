@@ -22,10 +22,7 @@ import { createAssistantSession } from './assistant.js';
 import { createRecorder } from './recorder.js';
 import { createSttFactory } from './stt/index.js';
 import { checkWhisper } from './stt/whisper.js';
-import { createHistoryStore } from './llm/history.js';
-import { createClaudeAssistant } from './llm/claude.js';
-import { createMockAssistant } from './llm/mock.js';
-import { createAssistantRoute, createWakePhraseAssistant } from './llm/assistant-route.js';
+import { createAssistantRoute } from './llm/assistant-route.js';
 import { createPendingRequestStore } from './muse-link/pendingRequestStore.js';
 import { createBridgeClient } from './muse-link/bridgeClient.js';
 import { createHttpHandler } from './muse-link/httpRoutes.js';
@@ -35,15 +32,11 @@ function log(event, data = {}) {
   console.log(`[${stamp}] ${event}`, JSON.stringify(data));
 }
 
-const history = createHistoryStore({ maxTurns: config.historyTurns, ttlMs: config.historyTtlMs });
 const createStt = createSttFactory(config);
 const pendingStore = createPendingRequestStore({ ttlMs: config.assistantRecordTtlMs });
 const bridgeClient = createBridgeClient({ bridgeUrl: config.bridgeUrl, bridgeInboundSecret: config.bridgeInboundSecret });
 
-const haikuAssistant = config.llmProvider === 'claude'
-  ? createClaudeAssistant({ model: config.claudeModel, timeoutMs: config.claudeTimeoutMs, history, log })
-  : createMockAssistant({ history });
-const assistantRoute = createAssistantRoute({
+const assistant = createAssistantRoute({
   bridgeClient,
   pendingStore,
   museSessionId: config.museSessionId,
@@ -51,12 +44,6 @@ const assistantRoute = createAssistantRoute({
   assistantName: config.assistantName,
   log,
 });
-
-const assistant = config.assistantRoute === 'muse'
-  ? assistantRoute
-  : config.assistantRoute === 'wake-phrase'
-    ? createWakePhraseAssistant({ wakePhrase: config.assistantWakePhrase, primary: haikuAssistant, assistantRoute })
-    : haikuAssistant;
 
 const httpServer = createServer(createHttpHandler({ config, pendingStore, log }));
 const wss = new WebSocketServer({ server: httpServer });
@@ -140,8 +127,7 @@ httpServer.listen(config.port, config.host, async () => {
     host: config.host,
     port: config.port,
     stt: config.sttProvider,
-    llm: config.llmProvider === 'claude' ? config.claudeModel : 'mock',
-    assistantRoute: config.assistantRoute,
+    bridgeUrl: config.bridgeUrl,
     recording: Boolean(config.recordDir),
   });
   if (config.sttProvider === 'whisper' && !(await checkWhisper(config.whisperUrl))) {

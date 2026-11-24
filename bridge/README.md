@@ -1,18 +1,15 @@
 # MemoMind to Muse bridge
 
-Runs on a dedicated Ubuntu mini PC. Bridges the MemoMind glasses assistant
-(Windows backend, `memomind-one-assistant/server`, port 8800) to a Muse Gadget
-SDK side chat, over Tailscale, for an asynchronous "assist" mode.
+Runs on a dedicated Ubuntu mini PC. Bridges the MemoMind glasses backend
+(`../backend`, port 8800) to a Muse Gadget SDK side chat, over Tailscale, for
+an asynchronous "assist" mode - this is the only assistant path the backend
+has, so a reply can take seconds to minutes, not "immediately".
 
 ```text
-MemoMind glasses -> Android app -> Windows backend :8800 -> Tailscale
+MemoMind glasses -> Android app -> Node backend :8800 -> Tailscale
   -> this bridge -> Muse Gadget SDK -> Muse side chat -> reply file on disk
-  -> this bridge -> Windows backend -> reply on glasses
+  -> this bridge -> Node backend -> reply on glasses
 ```
-
-Keep the existing Claude Haiku route as the default, low-latency mode. Ask
-The Muse route is for turns that need Muse's context/tools and can tolerate an
-asynchronous reply (seconds to minutes, not "immediately").
 
 ## What's implemented here (local work, no deployment done)
 
@@ -133,14 +130,12 @@ defaults. The required ones with no default: `BRIDGE_BIND_HOST`,
 `BRIDGE_BIND_PORT`, `WINDOWS_BACKEND_URL`, `MUSE_SESSION_ID`,
 `BRIDGE_INBOUND_SECRET`, `BACKEND_REPLY_SECRET`, `REPLY_DIR`.
 
-## Windows backend changes (separate repo: memomind-one-assistant)
+## Backend changes (../backend)
 
-Add these to `memomind-one-assistant/server/.env` once the bridge is
-deployed (not needed to just run Haiku, which stays the default):
+Add these to `../backend/.env` once the bridge is deployed - the backend has
+no other assistant path, so it needs all of these to do anything:
 
 ```text
-ASSISTANT_ROUTE=wake-phrase        # haiku (default) | muse | wake-phrase
-ASSISTANT_WAKE_PHRASE=ask muse    # only used when ASSISTANT_ROUTE=wake-phrase
 BRIDGE_URL=http://<mini-pc-tailscale-ip>:8900
 BRIDGE_INBOUND_SECRET=<same value as the bridge's BRIDGE_INBOUND_SECRET>
 BACKEND_REPLY_SECRET=<same value as the bridge's BACKEND_REPLY_SECRET>

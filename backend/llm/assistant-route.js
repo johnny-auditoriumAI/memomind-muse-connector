@@ -1,6 +1,6 @@
 /**
- * Assistant provider that routes a turn through the Muse bridge instead of
- * calling Claude directly, see ../../bridge/.
+ * Assistant provider that routes every turn through the Muse bridge, see
+ * ../../bridge/. This is the only assistant path this backend has.
  *
  *   reply({ conversationId, text, onDelta, signal, send }) -> { text, stopReason, pending? }
  *
@@ -62,28 +62,6 @@ export function createAssistantRoute({ bridgeClient, pendingStore, museSessionId
         text: result.status === 'ok' ? result.text : bridgeUnreachableReply(assistantName),
         stopReason: result.status === 'ok' ? 'end_turn' : 'error',
       };
-    },
-  };
-}
-
-/**
- * Wraps a primary assistant (normally Claude) with a wake-phrase check: a
- * transcript starting with `wakePhrase` (case-insensitive) is routed to
- * the assistant route with the phrase stripped; everything else goes to
- * `primary`.
- */
-export function createWakePhraseAssistant({ wakePhrase, primary, assistantRoute }) {
-  const prefix = wakePhrase.trim().toLowerCase();
-  return {
-    async reply(args) {
-      const trimmed = args.text.trim();
-      if (prefix && trimmed.toLowerCase().startsWith(prefix)) {
-        // STT punctuates the phrase ("Ask Muse, what's..."), so drop the
-        // separator it leaves behind as well.
-        const rest = trimmed.slice(prefix.length).replace(/^[\s,.:;!?-]+/, '').trim();
-        return assistantRoute.reply({ ...args, text: rest || trimmed });
-      }
-      return primary.reply(args);
     },
   };
 }

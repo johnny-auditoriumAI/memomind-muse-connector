@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Backend for the MemoMind Muse Connector glasses plugin: Opus decode, local whisper.cpp STT, streamed Claude replies, optional Muse bridge routing.",
+  "description": "Backend for the MemoMind Muse Connector glasses plugin: Opus decode, local whisper.cpp STT, and the Muse bridge assistant route.",
   "main": "server.js",
   "scripts": {
     "start": "node --env-file-if-exists=.env server.js",
@@ -14,7 +14,6 @@
     "test": "node --test \"test/*.test.mjs\""
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.135.0",
     "opusscript": "^0.1.1",
     "ws": "^8.18.0"
   },

@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.2.0
+
+Muse-only: removed the direct-API Claude Haiku route and the
+haiku/muse/wake-phrase routing choice. The Muse bridge is now the backend's
+only assistant path.
+
+- Removed `backend/llm/claude.js`, `backend/llm/mock.js` (the Haiku-mode
+  mock LLM), `backend/llm/history.js` (per-conversation memory, which only
+  existed to support Claude's multi-turn context), and
+  `createWakePhraseAssistant`.
+- Dropped `ANTHROPIC_API_KEY`, `CLAUDE_MODEL`, `LLM_PROVIDER`,
+  `ASSISTANT_ROUTE`, `ASSISTANT_WAKE_PHRASE` from config and
+  `.env.example`; `BRIDGE_URL`/`MUSE_SESSION_ID`/the two bridge secrets are
+  now required, not optional. Removed the `@anthropic-ai/sdk` dependency.
+- README/quickstart now describe a single setup path (bridge + backend +
+  plugin); speech-to-text (whisper.cpp or mock) is unchanged.
+- Test coverage: 63 backend tests (4 Haiku/wake-phrase-only tests removed),
+  59 bridge tests (bridge itself is unaffected).
+
 ## v0.1.0
 
 Initial public release.

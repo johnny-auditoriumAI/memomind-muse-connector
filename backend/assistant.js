@@ -1,7 +1,6 @@
 /**
  * One listening turn per WebSocket connection (the plugin reconnects per
- * turn; conversation memory lives in llm/history.js, keyed by the plugin's
- * conversationId):
+ * turn):
  *
  *   start          -> Opus decoder + STT stream; state "listening"
  *   audio chunks   -> split -> decode -> stt.write (30 s cap, then auto-finish)
@@ -17,7 +16,6 @@
  */
 import { createOpusDecoder } from './audio/opus.js';
 import { pcmDurationMs } from './audio/wav.js';
-import { describeClaudeError } from './llm/claude.js';
 
 export const EMPTY_TRANSCRIPT_REPLY = "I didn't catch that. Try again?";
 
@@ -195,5 +193,5 @@ function describeTurnError(error) {
   if (error.cause?.code === 'ECONNREFUSED' || /whisper/i.test(error.message)) {
     return 'Speech recognition is not running';
   }
-  return describeClaudeError(error) ?? 'Request cancelled';
+  return 'Request cancelled';
 }

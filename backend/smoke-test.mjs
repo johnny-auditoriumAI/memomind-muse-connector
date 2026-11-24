@@ -7,9 +7,11 @@
  *
  *   node smoke-test.mjs [ws://127.0.0.1:8800]
  *
- * With STT_PROVIDER=mock LLM_PROVIDER=mock on the server this needs no
- * whisper-server and no API key. A real whisper may transcribe a pure tone
- * as empty, which still passes (the backend then replies "didn't catch that").
+ * With STT_PROVIDER=mock on the server this needs no whisper-server; a real
+ * whisper may transcribe a pure tone as empty, which still passes (the
+ * backend then replies "didn't catch that"). Either way the reply always
+ * goes through the Muse bridge, so BRIDGE_URL/MUSE_SESSION_ID must be set
+ * and reachable.
  */
 import OpusScript from 'opusscript';
 import { runTurn } from './tools/replay.mjs';

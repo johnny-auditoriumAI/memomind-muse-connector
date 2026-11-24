@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createAssistantRoute, createWakePhraseAssistant, delayedReply, bridgeUnreachableReply } from '../llm/assistant-route.js';
+import { createAssistantRoute, delayedReply, bridgeUnreachableReply } from '../llm/assistant-route.js';
 import { createPendingRequestStore } from '../muse-link/pendingRequestStore.js';
 
 const silentLog = () => {};
@@ -78,22 +78,6 @@ test('assistant-route: a bridge submit failure returns immediately without waiti
   assert.equal(result.stopReason, 'bridge-error');
 });
 
-test('wake-phrase: strips the phrase and routes to the assistant route; everything else goes to primary', async () => {
-  const routeCalls = [];
-  const primaryCalls = [];
-  const assistantRoute = { async reply(args) { routeCalls.push(args.text); return { text: 'bridge reply', stopReason: 'end_turn' }; } };
-  const primary = { async reply(args) { primaryCalls.push(args.text); return { text: 'haiku reply', stopReason: 'end_turn' }; } };
-  const assistant = createWakePhraseAssistant({ wakePhrase: 'ask muse', primary, assistantRoute });
-
-  const r1 = await assistant.reply({ text: 'Ask Muse what time the meeting is' });
-  const r2 = await assistant.reply({ text: 'what is the weather' });
-
-  assert.equal(r1.text, 'bridge reply');
-  assert.deepEqual(routeCalls, ['what time the meeting is']);
-  assert.equal(r2.text, 'haiku reply');
-  assert.deepEqual(primaryCalls, ['what is the weather']);
-});
-
 test('assistant-route: a timeout is marked pending and records the conversation for a queued late reply', async () => {
   const pendingStore = createPendingRequestStore({ ttlMs: 60000 });
   let capturedRequestId;
@@ -107,18 +91,4 @@ test('assistant-route: a timeout is marked pending and records the conversation 
   assert.equal(result.pending, true);
   assert.equal(pendingStore.deliverLate(capturedRequestId, { type: 'reply', text: 'late', final: true }), 'queued');
   assert.deepEqual(pendingStore.takeQueued('conv-x'), [{ type: 'reply', text: 'late', final: true }]);
-});
-
-test('wake phrase: punctuation STT puts after the phrase is stripped', async () => {
-  const seen = [];
-  const assistant = createWakePhraseAssistant({
-    wakePhrase: 'ask muse',
-    primary: { async reply() { return { text: 'haiku' }; } },
-    assistantRoute: { async reply({ text }) { seen.push(text); return { text: 'bridge' }; } },
-  });
-
-  await assistant.reply({ text: "Ask Muse, what's on my calendar tomorrow?" });
-  await assistant.reply({ text: 'ask muse: weather' });
-
-  assert.deepEqual(seen, ["what's on my calendar tomorrow?", 'weather']);
 });

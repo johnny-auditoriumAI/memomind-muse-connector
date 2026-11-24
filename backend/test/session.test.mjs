@@ -2,8 +2,6 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import OpusScript from 'opusscript';
 import { createAssistantSession, EMPTY_TRANSCRIPT_REPLY } from '../assistant.js';
-import { createHistoryStore } from '../llm/history.js';
-import { createMockAssistant } from '../llm/mock.js';
 import { createMockSttStream, MOCK_TRANSCRIPT } from '../stt/mock.js';
 import { cleanTranscript } from '../stt/whisper.js';
 
@@ -17,17 +15,31 @@ function opusChunk(sequence) {
   return [{ sequence, frameLengths: packets.map((p) => p.length), discontinuity: false }, Buffer.concat(packets)];
 }
 
+/** Streamed echo assistant stand-in for the real Muse-route assistant, for exercising the turn state machine. */
+function createEchoAssistant() {
+  return {
+    async reply({ text, onDelta, signal }) {
+      const replyText = `You said: ${text}`;
+      for (const piece of replyText.match(/.{1,12}/g)) {
+        if (signal?.aborted) throw Object.assign(new Error('aborted'), { name: 'AbortError' });
+        onDelta(piece);
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+      return { text: replyText, stopReason: 'end_turn' };
+    },
+  };
+}
+
 function harness({ assistant, createStt = () => createMockSttStream(), overrides = {} } = {}) {
   const sent = [];
-  const history = createHistoryStore({ maxTurns: 6, ttlMs: 60000 });
   const session = createAssistantSession({
     send: (m) => sent.push(m),
     log: silentLog,
     config: { ...config, ...overrides },
     createStt,
-    assistant: assistant ?? createMockAssistant({ history }),
+    assistant: assistant ?? createEchoAssistant(),
   });
-  return { sent, session, history };
+  return { sent, session };
 }
 
 const start = { type: 'start', sampleRate: 16000, codec: 'opus', channels: 1, conversationId: 'c1' };
@@ -52,26 +64,10 @@ test('full turn: listening -> transcribing -> transcript -> thinking -> partial 
   assert.equal(sent[2].text, MOCK_TRANSCRIPT);
   assert.ok(types.includes('reply~'), 'expected throttled partial replies');
   const final = sent.find((m) => m.type === 'reply' && m.final === true);
-  assert.equal(final.text, `(mock reply 1) You said: ${MOCK_TRANSCRIPT}`);
+  assert.equal(final.text, `You said: ${MOCK_TRANSCRIPT}`);
   assert.equal(types.at(-1), 'state:idle');
   // partials only ever grow and are prefixes of the final text
   for (const m of sent.filter((x) => x.type === 'reply' && x.final === false)) assert.ok(final.text.startsWith(m.text));
-});
-
-test('memory: second turn on the same conversationId sees the first', async () => {
-  const { sent, session, history } = harness();
-  session.onStart(start);
-  session.onAudioChunk(...opusChunk(0));
-  session.onStop();
-  await until(() => sent.some((m) => m.type === 'state' && m.value === 'idle'));
-  assert.equal(history.get('c1').length, 2);
-
-  const second = harness({ assistant: createMockAssistant({ history }) });
-  second.session.onStart(start);
-  second.session.onAudioChunk(...opusChunk(0));
-  second.session.onStop();
-  await until(() => second.sent.some((m) => m.type === 'reply' && m.final === true));
-  assert.match(second.sent.find((m) => m.type === 'reply' && m.final === true).text, /mock reply 2/);
 });
 
 test('no audio -> empty transcript -> "didn\'t catch that" reply, no assistant call', async () => {
@@ -154,18 +150,6 @@ test('cleanTranscript drops non-speech tags only', () => {
   assert.equal(cleanTranscript('[MUSIC] play it again'), '[MUSIC] play it again');
 });
 
-test('history keeps the last N turns and expires idle conversations', () => {
-  let now = 0;
-  const history = createHistoryStore({ maxTurns: 2, ttlMs: 1000, now: () => now });
-  history.append('a', 'u1', 'a1');
-  history.append('a', 'u2', 'a2');
-  history.append('a', 'u3', 'a3');
-  assert.deepEqual(history.get('a').map((m) => m.content), ['u2', 'a2', 'u3', 'a3']);
-  now = 1500;
-  assert.deepEqual(history.get('a'), []);
-  assert.equal(history.size(), 0);
-});
-
 test('assistant-route pending: holding text is non-final, state goes to waiting, and idle is not sent', async () => {
   const assistant = { async reply() { return { text: 'Still asking Muse', stopReason: 'delayed', pending: true }; } };
   const { sent, session } = harness({ assistant });
@@ -189,7 +173,7 @@ test('queued late replies are shown as non-final text when the conversation star
     log: silentLog,
     config,
     createStt: () => createMockSttStream(),
-    assistant: createMockAssistant({ history: createHistoryStore({ maxTurns: 6, ttlMs: 60000 }) }),
+    assistant: createEchoAssistant(),
     takeQueuedReplies: (id) => (id === 'c1' ? [{ type: 'reply', text: 'Nuggets at 1 AM', final: true }] : []),
   });
 
