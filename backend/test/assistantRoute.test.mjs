@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createAssistantRoute, createWakePhraseAssistant, delayedReply, bridgeUnreachableReply } from '../llm/assistant-route.js';
-import { createPendingRequestStore } from '../bridge/pendingRequestStore.js';
+import { createPendingRequestStore } from '../muse-link/pendingRequestStore.js';
 
 const silentLog = () => {};
 const NAME = 'Muse';

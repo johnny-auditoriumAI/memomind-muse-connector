@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
-import { createHttpHandler } from '../bridge/httpRoutes.js';
-import { createPendingRequestStore } from '../bridge/pendingRequestStore.js';
+import { createHttpHandler } from '../muse-link/httpRoutes.js';
+import { createPendingRequestStore } from '../muse-link/pendingRequestStore.js';
 
 const silentLog = () => {};
 

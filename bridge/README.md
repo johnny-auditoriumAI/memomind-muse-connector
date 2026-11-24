@@ -104,7 +104,7 @@ appear only in the Muse app.
   durability/restart-safety, dedup, the HTTP routes, the reply-file
   validation and retry-on-failure path, expiry, and the health monitor's
   transition/cooldown logic).
-- The `backend/` additions (`backend/bridge/*`, `backend/llm/assistant-route.js`)
+- The `backend/` additions (`backend/muse-link/*`, `backend/llm/assistant-route.js`)
   are tested together with this bridge's contract: the Node side's
   `/v1/muse-reply` schema matches exactly what `ReplyForwarder` sends.
 

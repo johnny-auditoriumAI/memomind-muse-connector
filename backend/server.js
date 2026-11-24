@@ -26,9 +26,9 @@ import { createHistoryStore } from './llm/history.js';
 import { createClaudeAssistant } from './llm/claude.js';
 import { createMockAssistant } from './llm/mock.js';
 import { createAssistantRoute, createWakePhraseAssistant } from './llm/assistant-route.js';
-import { createPendingRequestStore } from './bridge/pendingRequestStore.js';
-import { createBridgeClient } from './bridge/bridgeClient.js';
-import { createHttpHandler } from './bridge/httpRoutes.js';
+import { createPendingRequestStore } from './muse-link/pendingRequestStore.js';
+import { createBridgeClient } from './muse-link/bridgeClient.js';
+import { createHttpHandler } from './muse-link/httpRoutes.js';
 
 function log(event, data = {}) {
   const stamp = new Date().toISOString();

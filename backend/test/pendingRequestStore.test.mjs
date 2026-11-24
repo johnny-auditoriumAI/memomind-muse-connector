@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createPendingRequestStore } from '../bridge/pendingRequestStore.js';
+import { createPendingRequestStore } from '../muse-link/pendingRequestStore.js';
 
 test('resolveWaiter resolves an attached in-process waiter exactly once', () => {
   const store = createPendingRequestStore({ ttlMs: 60000 });
