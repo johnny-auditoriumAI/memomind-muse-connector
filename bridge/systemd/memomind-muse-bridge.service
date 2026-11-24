@@ -1,0 +1,24 @@
+[Unit]
+Description=MemoMind to Muse bridge
+After=network-online.target tailscaled.service musegadget.service
+Wants=network-online.target
+Requires=musegadget.service
+
+[Service]
+Type=simple
+User=musebridge
+Group=musebridge
+WorkingDirectory=/opt/memomind-muse-bridge
+EnvironmentFile=/etc/memomind-muse-bridge.env
+ExecStart=/opt/memomind-muse-bridge/.venv/bin/python -m bridge
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/memomind-muse-bridge
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

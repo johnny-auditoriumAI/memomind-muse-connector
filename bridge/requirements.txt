@@ -1,0 +1,3 @@
+# Intentionally empty: the bridge is stdlib-only (http.server, urllib,
+# json, subprocess, threading). Only musegadget itself needs its own
+# separate install (see the official Muse Gadget SDK installer).

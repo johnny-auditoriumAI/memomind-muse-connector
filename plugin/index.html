@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src ws: wss: http://127.0.0.1:* http://localhost:*; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>MemoMind One Assistant</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>MemoMind One Assistant</h1>
+    <p id="runtime-status" class="muted">Waiting for the App to inject the Bridge&hellip;</p>
+
+    <section class="panel">
+      <div id="state-badge" data-state="idle">Idle</div>
+      <button id="toggle-listen" disabled>Start listening</button>
+    </section>
+
+    <section class="panel">
+      <h2>Glasses display (exact pixels sent)</h2>
+      <div class="glass-preview">
+        <canvas id="preview-canvas" width="600" height="350"></canvas>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Audio</h2>
+      <label class="switch"><input id="speak-replies" type="checkbox" checked> Speak replies aloud</label>
+      <p id="speak-note" class="muted"></p>
+      <p class="muted">Voice: uses the phone's text-to-speech voice. Change it in Android Settings &gt; Text-to-speech output &gt; Google &gt; English (US), then restart MemoMind.</p>
+      <p class="muted">Test plays a tone, then a spoken sentence. Listen for whether it comes from the glasses or the phone.</p>
+      <button id="audio-test">Test audio</button>
+    </section>
+
+    <section class="panel settings">
+      <h2>Settings</h2>
+      <label for="backend-url">Backend WebSocket URL</label>
+      <div class="row">
+        <input id="backend-url" type="text" value="ws://127.0.0.1:8800" spellcheck="false">
+        <button id="save-url">Save</button>
+      </div>
+      <p id="settings-note" class="muted"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Event log</h2>
+      <button id="clear-log">Clear</button>
+      <ul id="event-log"></ul>
+    </section>
+  </main>
+  <script type="module" src="plugin.js"></script>
+</body>
+</html>

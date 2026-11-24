@@ -1,0 +1,2 @@
+# Deployed to Linux: keep LF even when checked out on Windows.
+* text=auto eol=lf

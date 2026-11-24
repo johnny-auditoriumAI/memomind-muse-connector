@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>HUD harness</title>
+  <style>
+    body { background: #111; color: #aaa; font: 13px system-ui, sans-serif; margin: 16px; }
+    figure { margin: 0 0 16px; display: inline-block; vertical-align: top; }
+    canvas { display: block; border: 1px solid #333; }
+  </style>
+</head>
+<body>
+  <!-- Dev-only (not packaged): renders sample scenes through the real HUD
+       pipeline and decodes the GRAY_4 bytes back to green-on-black. -->
+  <div id="out"></div>
+  <script type="module">
+    import { computeHud } from '../hud-layout.js';
+    import { createMeasurer, renderHudFrame, paintPreview } from '../hud-renderer.js';
+
+    const measureAt = createMeasurer();
+    const longReply = 'Good question. The short version is that the mini PC relays your question to me through the Muse side chat, and I write the answer back to a reply file that the bridge forwards to your Windows backend. From there it streams to the glasses over the same WebSocket you used to talk. It usually takes ten to thirty seconds, depending on what I am in the middle of. If it ever takes longer than ten minutes the bridge gives up and tells you so, instead of leaving you hanging.';
+    const scenes = [
+      ['Idle', { status: 'Press button to talk', state: 'idle', transcript: '', reply: { text: '', revealed: 0, scrollTop: null } }],
+      ['Listening', { status: 'LISTENING', state: 'listening', transcript: 'How does the bridge between the glasses and you actually work, step by step?', reply: { text: '', revealed: 0, scrollTop: null } }],
+      ['Waiting for reply', { status: 'WAITING FOR REPLY…', state: 'processing', transcript: 'How does the bridge between the glasses and you actually work, step by step?', reply: { text: '', revealed: 0, scrollTop: null } }],
+      ['Short reply', { status: 'Press button to talk', state: 'idle', transcript: 'Can you hear me from the glasses?', reply: { text: 'Loud and clear. The glasses are working - ask me anything.', revealed: 999, scrollTop: null } }],
+      ['Long reply (typing, follows bottom)', { status: 'Press button to talk', state: 'idle', transcript: 'How does the bridge between the glasses and you actually work, step by step?', reply: { text: longReply, revealed: longReply.length, scrollTop: null } }],
+      ['Long reply scrolled to top', { status: 'Press button to talk', state: 'idle', transcript: 'How does the bridge between the glasses and you actually work, step by step?', reply: { text: longReply, revealed: longReply.length, scrollTop: 0 } }],
+      ['Error', { status: 'ERROR: backend disconnected', state: 'error', transcript: '', reply: { text: '', revealed: 0, scrollTop: null } }],
+    ];
+    const out = document.getElementById('out');
+    for (const [name, scene] of scenes) {
+      const hud = computeHud({ ...scene, clock: '14:05', measureAt });
+      const figure = document.createElement('figure');
+      const caption = document.createElement('figcaption');
+      caption.textContent = name + (hud.reply ? ` - ${hud.reply.window.totalLines} lines, ${hud.reply.maxLines} visible` : '');
+      const canvas = document.createElement('canvas');
+      paintPreview(canvas, renderHudFrame(hud));
+      figure.append(caption, canvas);
+      out.append(figure);
+    }
+    document.title = 'HUD harness rendered';
+  </script>
+</body>
+</html>

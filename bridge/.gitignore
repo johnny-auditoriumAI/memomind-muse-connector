@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+# Filled-in env files hold secrets; only the .example template is committed.
+*.env
+!*.env.example
